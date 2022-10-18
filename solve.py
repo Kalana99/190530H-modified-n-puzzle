@@ -413,7 +413,7 @@ if user_in == "1":
     differences = []
 
     for m in range(n):
-        differences.append(abs(MIS_TILE_MOVES[m] - MANHATTAN_MOVES[m]))
+        differences.append(MIS_TILE_MOVES[m] - MANHATTAN_MOVES[m])
 
     print("Differences :\n" + repr(differences) + "\n")
 
