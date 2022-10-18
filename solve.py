@@ -1,11 +1,5 @@
 import random
-import os.path
-from RandomGenerator import RandomGenerator
 
-
-# START_CONF_FILE_NAME = "Sample_Start_Configuration.txt"
-# GOAL_CONF_FILE_NAME = "Sample_Goal_Configuration.txt"
-# OUT_FILE_NAME = "out.txt"
 
 START_CONF_FILE_NAME = ""
 GOAL_CONF_FILE_NAME = ""
@@ -21,9 +15,8 @@ CLOSED_STATES = []
 
 PATH = []
 
-H_METHOD = "miss_tile"  # change this to the preferred method accordingly
-# H_METHOD = "manhattan"
-MOVE_COUNT = 0
+H_METHOD = ""  # change this to the preferred method accordingly
+
 MIS_TILE_MOVES = []
 MANHATTAN_MOVES = []
 
@@ -96,6 +89,21 @@ def get_minimum_f_state():
     return selected_state
 
 
+# return indices of the blank tiles
+def get_blank_tiles(config: []):
+
+    blank_tiles = []
+
+    for row in range(SIZE):
+        for col in range(SIZE):
+
+            if config[row][col] == '-':
+                if len(blank_tiles) < 2:
+                    blank_tiles.append((row, col))
+
+    return blank_tiles
+
+
 # returns True if the provided (row, col) is in the config limits
 def is_in_limits(pos):
 
@@ -110,15 +118,7 @@ def is_in_limits(pos):
 # return every possible state from a given state
 def get_adj_states(curr_state: State):
 
-    blank_tiles = []
-
-    for row in range(SIZE):
-        for col in range(SIZE):
-
-            if curr_state.config[row][col] == '-':
-
-                if len(blank_tiles) < 2:
-                    blank_tiles.append((row, col))
+    blank_tiles = get_blank_tiles(curr_state.config)
 
     states = []
 
@@ -141,6 +141,66 @@ def get_adj_states(curr_state: State):
                 states.append(State(temp_config, curr_state, curr_state.g_val + 1))
 
     return states
+
+
+# returns a start configuration given a size
+def get_start_puzzle(size):
+
+    chars = ['-', '-']
+    for j in range(size * size - 2):
+        chars.append(j + 1)
+
+    puzzle = []
+    used_chars = []
+
+    for rows in range(size):
+
+        row = []
+
+        while len(row) < size:
+
+            rand_ind = random.randint(0, len(chars) - 1)
+            selected_char = str(chars[rand_ind])
+
+            if selected_char == '-' and used_chars.count('-') < 2:
+
+                row.append(selected_char)
+                used_chars.append(selected_char)
+
+            elif selected_char not in used_chars:
+
+                row.append(selected_char)
+                used_chars.append(selected_char)
+
+        puzzle.append(row)
+
+    return puzzle
+
+
+# returns a goal configuration based on the start configuration
+def get_goal_puzzle(start_puzzle):
+
+    goal_puzzle = [x[:] for x in start_puzzle]
+
+    move_limit = random.randint(1, 5)
+    moves = [[0, 1], [0, -1], [1, 0], [-1, 0]]
+    move_count = 0
+
+    while move_count < move_limit:
+
+        blank_tiles = get_blank_tiles(goal_puzzle)
+        moving_blank_tile = random.choice(blank_tiles)
+
+        move = random.choice(moves)
+
+        pos = (moving_blank_tile[0] + move[0], moving_blank_tile[1] + move[1])
+
+        if is_in_limits(pos):
+
+            goal_puzzle[pos[0]][pos[1]], goal_puzzle[moving_blank_tile[0]][moving_blank_tile[1]] = goal_puzzle[moving_blank_tile[0]][moving_blank_tile[1]], goal_puzzle[pos[0]][pos[1]]
+            move_count += 1
+
+    return goal_puzzle
 
 
 # return if state is in opened
@@ -226,21 +286,23 @@ def get_path(curr_state: State):
 # A* search
 def a_star():
 
-    global MOVE_COUNT, START_CONF_FILE_NAME, GOAL_CONF_FILE_NAME, START_CONFIG, GOAL_CONFIG, OUT_FILE_NAME, SIZE, PATH
+    global START_CONFIG, GOAL_CONFIG, OUT_FILE_NAME, SIZE, PATH
+
+    move_count = 0
 
     while len(OPENED_STATES) > 0:
 
         current_state = get_minimum_f_state()
-        MOVE_COUNT += 1
+        move_count += 1
 
         if current_state.config == GOAL_CONFIG:
 
             if H_METHOD == "miss_tile":
-                MIS_TILE_MOVES.append(MOVE_COUNT)
+                MIS_TILE_MOVES.append(move_count)
             else:
-                MANHATTAN_MOVES.append(MOVE_COUNT)
+                MANHATTAN_MOVES.append(move_count)
 
-            MOVE_COUNT = 0
+            move_count = 0
 
             return get_path(current_state)
 
@@ -281,12 +343,7 @@ def a_star():
 
 def empty_global_var():
 
-    global START_CONFIG, GOAL_CONFIG, SIZE, OPENED_STATES, CLOSED_STATES, PATH
-
-    # START_CONFIG = []
-    # GOAL_CONFIG = []
-
-    SIZE = 0
+    global OPENED_STATES, CLOSED_STATES, PATH
 
     OPENED_STATES = []
     CLOSED_STATES = []
@@ -296,25 +353,7 @@ def empty_global_var():
 
 def final_out(out_type):
 
-    global START_CONF_FILE_NAME, GOAL_CONF_FILE_NAME, START_CONFIG, GOAL_CONFIG, OUT_FILE_NAME, SIZE, PATH
-
-    # file_start = open(START_CONF_FILE_NAME, "r")
-    # s_lines = file_start.readlines()
-    #
-    # for line in s_lines:
-    #     START_CONFIG.append(line.strip().split())
-    #
-    # file_start.close()
-    #
-    # file_goal = open(GOAL_CONF_FILE_NAME, "r")
-    # g_lines = file_goal.readlines()
-    #
-    # for line in g_lines:
-    #     GOAL_CONFIG.append(line.strip().split())
-    #
-    # file_goal.close()
-
-    SIZE = len(START_CONFIG)
+    global START_CONFIG, GOAL_CONFIG, OUT_FILE_NAME, SIZE, PATH
 
     # add starting configuration to the opened list as the initial state
     opening_state = State(START_CONFIG, None, 0)
@@ -336,8 +375,6 @@ def final_out(out_type):
 
 user_in = input("Enter 1 for analytics and 2 to run sample tests: \n")
 
-TIME_OUT = 1
-
 if user_in == "1":
 
     n = int(input("No of tests: "))
@@ -348,27 +385,15 @@ if user_in == "1":
         print("invalid limits")
         exit(-1)
 
-    random_generator = RandomGenerator(lower_limit, greater_limit, n)
-    random_generator.generate()  # TODO: change generator to create one file at a time which is solvable. If not delete it and try new config
+    for p in range(n):
 
-    # start_file_lst = random_generator.start_files
-    # goal_file_lst = random_generator.goal_files
+        size = random.randint(lower_limit, greater_limit)
 
-    start_puzzles = random_generator.start_puzzles
-    goal_puzzles = random_generator.goal_puzzles
+        START_CONFIG = get_start_puzzle(size)
+        SIZE = len(START_CONFIG)
+        GOAL_CONFIG = get_goal_puzzle(START_CONFIG)
 
-    for i in range(len(start_puzzles)):
-
-        # START_CONF_FILE_NAME = os.path.join(random_generator.start_file_path, start_file_lst[i])
-        # GOAL_CONF_FILE_NAME = os.path.join(random_generator.goal_file_path, goal_file_lst[i])
-
-        puzzle_size = random.randint(lower_limit, greater_limit)
-
-        # START_CONFIG = RandomGenerator.get_start_puzzle(puzzle_size)
-        # GOAL_CONFIG = RandomGenerator.get_goal_puzzle(START_CONFIG)  # TODO: create goal by moving start tiles
-
-        START_CONFIG = start_puzzles[i]
-        GOAL_CONFIG = goal_puzzles[i]
+        H_METHOD = "miss_tile"
 
         final_out(user_in)
         empty_global_var()
@@ -378,8 +403,9 @@ if user_in == "1":
         final_out(user_in)
         empty_global_var()
 
-        # print("Misplaced tile moves " + repr(MIS_TILE_MOVES))
-        # print("Manhattan moves " + repr(MANHATTAN_MOVES))
+    print(len(MIS_TILE_MOVES), len(MANHATTAN_MOVES))
+    print("Misplaced tile moves " + repr(MIS_TILE_MOVES))
+    print("Manhattan moves " + repr(MANHATTAN_MOVES))
 
 elif user_in == "2":
 
@@ -407,6 +433,8 @@ elif user_in == "2":
         GOAL_CONFIG.append(line.strip().split())
 
     file_goal.close()
+
+    SIZE = len(START_CONFIG)
 
     final_out(user_in)
     # empty_global_var()

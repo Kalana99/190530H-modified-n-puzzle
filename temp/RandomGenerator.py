@@ -75,7 +75,7 @@ class RandomGenerator:
     #     return str_puzzle
 
     @staticmethod
-    def get_start_puzzle(size):
+    def get_start_puzzle(size):  # TODO: add to self.start_puzzles
 
         chars = ['-', '-']
         for j in range(size * size - 2):
@@ -110,7 +110,12 @@ class RandomGenerator:
 
     @staticmethod
     def get_goal_puzzle(start_puzzle):
-        pass
+
+        goal_puzzle = [x[:] for x in start_puzzle]
+
+        move_limit = random.randint(1, 5)
+        moves = [[0, 1], [0, -1], [1, 0], [-1, 0]]
+        move_count = 0
 
     def generate(self):
 

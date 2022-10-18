@@ -25,7 +25,8 @@
 #     file.writelines(rw)
 #     file.close()
 
-a = 4
+import random
 
-for i in range(a):
-    print(i)
+a = [(1, 2), (3, 4)]
+rc = random.choice(a)
+print(rc)
