@@ -1,4 +1,5 @@
 import random
+import statistics
 
 
 START_CONF_FILE_NAME = ""
@@ -182,7 +183,7 @@ def get_goal_puzzle(start_puzzle):
 
     goal_puzzle = [x[:] for x in start_puzzle]
 
-    move_limit = random.randint(1, 5)
+    move_limit = random.randint(1, 10)
     moves = [[0, 1], [0, -1], [1, 0], [-1, 0]]
     move_count = 0
 
@@ -403,9 +404,20 @@ if user_in == "1":
         final_out(user_in)
         empty_global_var()
 
-    print(len(MIS_TILE_MOVES), len(MANHATTAN_MOVES))
-    print("Misplaced tile moves " + repr(MIS_TILE_MOVES))
-    print("Manhattan moves " + repr(MANHATTAN_MOVES))
+    print("\nNo. of tests with misplaced tiles as h value: " + str(len(MIS_TILE_MOVES)))
+    print("No. of tests with manhattan distance as h value: " + str(len(MANHATTAN_MOVES)) + "\n")
+
+    print("Misplaced tile moves :\n" + repr(MIS_TILE_MOVES) + "\n")
+    print("Manhattan moves :\n" + repr(MANHATTAN_MOVES) + "\n")
+
+    differences = []
+
+    for m in range(n):
+        differences.append(abs(MIS_TILE_MOVES[m] - MANHATTAN_MOVES[m]))
+
+    print("Differences :\n" + repr(differences) + "\n")
+
+    print("Mean Difference: " + str(statistics.fmean(differences)))
 
 elif user_in == "2":
 
