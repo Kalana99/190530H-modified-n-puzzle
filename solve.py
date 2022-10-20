@@ -183,7 +183,7 @@ def get_goal_puzzle(start_puzzle):
 
     goal_puzzle = [x[:] for x in start_puzzle]
 
-    move_limit = random.randint(1, 10)
+    move_limit = random.randint(10, 20)
     moves = [[0, 1], [0, -1], [1, 0], [-1, 0]]
     move_count = 0
 
@@ -417,18 +417,22 @@ if user_in == "1":
 
     print("Differences :\n" + repr(differences) + "\n")
 
-    print("Mean Difference: " + str(statistics.fmean(differences)))
+    d_ = statistics.fmean(differences)
+    print("Mean Difference: " + str(d_))
+
+    sd = statistics.stdev(differences)
+    print("Standard Deviation: " + str(sd))
+
+    se = sd / (n ** 0.5)
+    print("Standard Error of the Mean Difference: " + str(se))
+
+    t_statistic = d_ / se
+    print("T-statistic: " + str(t_statistic))
 
 elif user_in == "2":
 
-    # START_CONF_FILE_NAME = input("Start config file name: ")
-    # GOAL_CONF_FILE_NAME = input("Goal config file name: ")
-
-    START_CONF_FILE_NAME = "Sample_Start_Configuration.txt"
-    GOAL_CONF_FILE_NAME = "Sample_Goal_Configuration.txt"
-
-    # START_CONF_FILE_NAME = "Start_Configuration_1.txt"
-    # GOAL_CONF_FILE_NAME = "Goal_Configuration_1.txt"
+    START_CONF_FILE_NAME = input("Start config file name: ")
+    GOAL_CONF_FILE_NAME = input("Goal config file name: ")
 
     file_start = open(START_CONF_FILE_NAME, "r")
     s_lines = file_start.readlines()
@@ -449,15 +453,6 @@ elif user_in == "2":
     SIZE = len(START_CONFIG)
 
     final_out(user_in)
-    # empty_global_var()
-    #
-    # H_METHOD = "manhattan"
-    #
-    # final_out(user_in)
-    # empty_global_var()
-    #
-    # print("Misplaced tile moves " + repr(MIS_TILE_MOVES))
-    # print("Manhattan moves " + repr(MANHATTAN_MOVES))
 
 else:
 
